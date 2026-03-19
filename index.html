@@ -1299,8 +1299,7 @@ Return ONLY valid JSON, no markdown:
     parts.push({ text: `${systemPrompt}\n\nQUESTION: "${S.question}"\nTYPE: ${S.decisionType}\nPRIORITIES: ${S.selectedChips.join(', ')}\nTONE: ${S.mode}` });
   }
 
-  const resp = await fetch(
-    `https://pearlagemini.dhanesh-071998.workers.dev`,
+  const resp = await fetch(`https://pearlagemini.dhanesh-071998.workers.dev`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts }], generationConfig: { temperature: 0.8, maxOutputTokens: 800 } })
     }
@@ -1311,7 +1310,9 @@ Return ONLY valid JSON, no markdown:
     throw new Error(err.error?.message || `Gemini API error ${resp.status}`);
   }
 
-  const data = await resp.json();
+  const text = await resp.text();
+console.log("RAW RESPONSE:", text);
+return;
   const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   clearInterval(statusTimer);
   return JSON.parse(raw.replace(/```json|```/g, '').trim());
@@ -1501,3 +1502,4 @@ function shareResult() {
 </script>
 </body>
 </html>
+
