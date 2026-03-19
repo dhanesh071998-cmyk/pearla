@@ -9,9 +9,12 @@
 
 <!-- Firebase SDK -->
 <script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  import { 
+  getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, orderBy, limit, getDocs,
+  enableNetwork
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
   // ═══════════════════════════════════════════════════
   // 🔧 CONFIG — REPLACE WITH YOUR ACTUAL VALUES
@@ -19,9 +22,9 @@
   const FIREBASE_CONFIG = {
     apiKey: "AIzaSyB6Obc6Z4HFXRg13Fe-YpH-FoosUKSzCdc",
     authDomain: "pearla-app.firebaseapp.com",
-    projectId: "pearla-appD",
+    projectId: "pearla-app",
     storageBucket: "pearla-app.firebasestorage.app",
-    messagingSenderId: "61983648028D",
+    messagingSenderId: "61983648028",
     appId: "1:61983648028:web:d8ea1e6d10604c70a0b2d9"
   };
   const GEMINI_API_KEY = "";           // aistudio.google.com
@@ -1513,5 +1516,3 @@ function shareResult() {
 </script>
 </body>
 </html>
-
-
