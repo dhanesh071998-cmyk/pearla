@@ -1287,7 +1287,7 @@ function animBar(id, pct, valId) {
 // ═══════════════════════════════════════════════════════
 async function callGemini() {
   const { GEMINI_API_KEY } = window._pearla;
-  const isVisual = S.decisionType === 'visual' && S.image1B64;
+  const isVisual = S.decisionType === 'visual' && S.image1B64;  
 
   const tones = {
     mentor: 'You are a warm, wise mentor. Speak with empathy and total conviction.',
@@ -1326,8 +1326,7 @@ Return ONLY valid JSON, no markdown:
 
   const text = await resp.text();
 console.log("RAW RESPONSE:", text);
-return;
-  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const raw = text;
   clearInterval(statusTimer);
   return JSON.parse(raw.replace(/```json|```/g, '').trim());
 }
