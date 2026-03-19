@@ -24,7 +24,7 @@
     messagingSenderId: "61983648028D",
     appId: "1:61983648028:web:d8ea1e6d10604c70a0b2d9"
   };
-  const GEMINI_API_KEY = "AIzaSyCsyWogoDfubMt_UWeMAxSLz_H9FFulXFY";           // aistudio.google.com
+  const GEMINI_API_KEY = NOT_NEEDED;           // aistudio.google.com
   const CLOUDINARY_CLOUD = "dgwsv5mik"; // cloudinary.com free
   const CLOUDINARY_PRESET = "pearla_unsigned";            // unsigned upload preset name
   const RAZORPAY_KEY = "YOUR_RAZORPAY_KEY_ID";           // razorpay.com
@@ -1300,7 +1300,7 @@ Return ONLY valid JSON, no markdown:
   }
 
   const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+    `https://pearlagemini.dhanesh-071998.workers.dev`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts }], generationConfig: { temperature: 0.8, maxOutputTokens: 800 } })
     }
