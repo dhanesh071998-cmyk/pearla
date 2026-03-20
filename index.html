@@ -1249,20 +1249,23 @@ async function runAnalysis() {
   cycleStatus();
 
   try {
-    // 🔥 Call Gemini Worker
-    const r = await callGemini(); 
-    S.result = r;
+    const r = await callGemini();
+    if (!r) {
+      console.error("AI returned nothing!");
+      showScreen('s-fast');
+      return;
+    }
 
+    S.result = r;
     await useQuota(); 
     await updateQuotaDisplay();
     await saveDecision(r);
 
-    // 🔥 Render AI result
     renderResult(r); 
     showScreen('s-result');
 
   } catch (err) {
-    console.error(err); 
+    console.error(err);
     showScreen('s-fast');
     document.getElementById('chips-grid').innerHTML = `
       <div class="error-card">
@@ -1271,13 +1274,6 @@ async function runAnalysis() {
       </div>`;
   }
 }
-function cycleStatus() {
-  clearInterval(statusTimer); statusIdx = 0;
-  const e1 = document.getElementById('analysis-status-text'); const e2 = document.getElementById('analysis-status');
-  e1.textContent = statusMsgs[0];
-  statusTimer = setInterval(() => { statusIdx = (statusIdx + 1) % statusMsgs.length; e1.textContent = statusMsgs[statusIdx]; e2.textContent = statusMsgs[statusIdx]; }, 1800);
-}
-
 function animateBars() {
   ['risk','growth','stability','confidence'].forEach(b => { document.getElementById(`bar-${b}`).style.width = '0'; document.getElementById(`val-${b}`).textContent = '--'; });
   setTimeout(() => animBar('risk', 42, 'val-risk'), 300);
@@ -1294,42 +1290,30 @@ function animBar(id, pct, valId) {
 // GEMINI API (replaces Claude)
 // ═══════════════════════════════════════════════════════
 async function callGemini() {
-  const userPrompt = `You are Pearla AI. Decide: "${S.question}". Keep response short. Return ONLY JSON.`;
+  if (!S.question || !S.selectedChips.length) return null;
+
+  const payload = {
+    prompt: `Decide: "${S.question}". Priorities: ${S.selectedChips.join(', ')}. Return ONLY JSON.`
+  };
 
   const resp = await fetch('https://pearlagemini.dhanesh-071998.workers.dev/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: userPrompt })
+    body: JSON.stringify(payload)
   });
 
   const data = await resp.json();
-  console.log("RAW GEMINI DATA:", data);
 
   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!rawText) {
-    return {
-      decision: "No answer",
-      confidence: 78,
-      risk_score: 20,
-      growth_score: 50,
-      stability_score: 60,
-      insight: "AI picked the best option",
-      outcome_a: "Option A evaluated",
-      outcome_b: "Option B evaluated",
-      regret_level: "LOW",
-      regret_text: "Low regret expected"
-    };
-  }
+  if (!rawText) return null;
 
   try {
-    return JSON.parse(rawText.replace(/```json|```/g, '').trim());
+    return JSON.parse(rawText);
   } catch (err) {
     console.error("Failed to parse Gemini JSON:", rawText);
-    return { decision: rawText };
+    return null;
   }
 }
-
 // ═══════════════════════════════════════════════════════
 // SAVE DECISION TO FIRESTORE
 // ═══════════════════════════════════════════════════════
