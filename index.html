@@ -1301,7 +1301,7 @@ async function callGemini() {
     : `You are Pearla AI decision engine. Make ONE confident choice for: "${S.question}". Factors: ${S.selectedChips.join(', ')}. Return ONLY valid JSON with keys: decision, confidence, insight, risk_score, growth_score, stability_score, outcome_a, outcome_b, regret_level, regret_text`;
 
   // Send request to your Cloudflare worker
-  const resp = await fetch('https://pearlagemini.dhanesh-071998.workers.dev', {
+  const resp = await fetch('https://pearlagemini.dhanesh-071998.workers.dev/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: userPrompt })
