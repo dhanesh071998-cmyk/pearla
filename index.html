@@ -1239,28 +1239,28 @@ const statusMsgs = ['Reading between the lines…','Weighing your risks…','Sca
 let statusTimer, statusIdx = 0;
 
 async function runAnalysis() {
-  if (!S.selectedChips.length) { 
-    toast('Pick at least 1 factor'); 
-    return; 
+  if (!S.selectedChips.length) {
+    toast('Pick at least 1 factor');
+    return;
   }
 
-  showScreen('s-analysis'); 
-  animateBars(); 
+  showScreen('s-analysis');
+  animateBars();
   cycleStatus();
 
   try {
-    // 🔹 Call the AI for a real decision
-    const r = await callGemini();  // <-- this was missing
+    // Call the AI for a real decision
+    const r = await callGemini();  // <-- callGemini must exist
     S.result = r;
 
-    await useQuota(); 
+    await useQuota();
     await updateQuotaDisplay();
     await saveDecision(r);
 
-    renderResult(r); 
+    renderResult(r);
     showScreen('s-result');
   } catch (err) {
-    console.error(err); 
+    console.error(err);
     showScreen('s-fast');
     document.getElementById('chips-grid').innerHTML = `
       <div class="error-card">
@@ -1269,7 +1269,7 @@ async function runAnalysis() {
       </div>
     `;
   }
-}
+} 
 function cycleStatus() {
   clearInterval(statusTimer); statusIdx = 0;
   const e1 = document.getElementById('analysis-status-text'); const e2 = document.getElementById('analysis-status');
@@ -1517,4 +1517,3 @@ function shareResult() {
 </script>
 </body>
 </html>
-
