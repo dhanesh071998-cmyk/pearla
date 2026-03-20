@@ -1239,28 +1239,28 @@ const statusMsgs = ['Reading between the lines…','Weighing your risks…','Sca
 let statusTimer, statusIdx = 0;
 
 async function runAnalysis() {
-  if (!S.selectedChips.length) {
-    toast('Pick at least 1 factor');
-    return;
+  if (!S.selectedChips.length) { 
+    toast('Pick at least 1 factor'); 
+    return; 
   }
 
-  showScreen('s-analysis');
-  animateBars();
+  showScreen('s-analysis'); 
+  animateBars(); 
   cycleStatus();
 
   try {
-    // Call the AI for a real decision
-    const r = await callGemini();  // <-- callGemini must exist
+    // 🔹 Call AI to get a real decision
+    const r = await callGemini();
     S.result = r;
 
-    await useQuota();
+    await useQuota(); 
     await updateQuotaDisplay();
     await saveDecision(r);
 
-    renderResult(r);
+    renderResult(r); 
     showScreen('s-result');
   } catch (err) {
-    console.error(err);
+    console.error(err); 
     showScreen('s-fast');
     document.getElementById('chips-grid').innerHTML = `
       <div class="error-card">
@@ -1269,7 +1269,7 @@ async function runAnalysis() {
       </div>
     `;
   }
-} 
+}
 function cycleStatus() {
   clearInterval(statusTimer); statusIdx = 0;
   const e1 = document.getElementById('analysis-status-text'); const e2 = document.getElementById('analysis-status');
@@ -1295,12 +1295,12 @@ function animBar(id, pct, valId) {
 async function callGemini() {
   const isVisual = S.decisionType === 'visual' && S.image1B64;
 
-  // Build user prompt
+  // Build the question prompt for the AI
   const userPrompt = isVisual
     ? `For VISUAL decision: ${S.question || 'Which looks better?'} Evaluate images and pick a winner. Factors: ${S.selectedChips.join(', ')}`
-    : `You are Pearla AI decision engine. Make ONE confident choice for: ${S.question}. Factors: ${S.selectedChips.join(', ')}. Answer in ONE word or short sentence.`;
+    : `You are Pearla AI decision engine. Make ONE confident choice for: "${S.question}". Factors: ${S.selectedChips.join(', ')}. Return ONLY valid JSON with keys: decision, confidence, insight, risk_score, growth_score, stability_score, outcome_a, outcome_b, regret_level, regret_text`;
 
-  // Send to your Cloudflare Worker
+  // Send request to your Cloudflare worker
   const resp = await fetch('https://pearlagemini.dhanesh-071998.workers.dev', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1313,24 +1313,37 @@ async function callGemini() {
   }
 
   const data = await resp.json();
-  console.log("Gemini RAW:", data);
+  console.log("Gemini RAW RESPONSE:", data);
 
-  // Extract the AI decision text
-  const decision = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "No answer";
+  // Extract the text part from Gemini response
+  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-  // Return object for your renderResult function
-  return {
-    decision,
-    confidence: Math.floor(Math.random() * 20) + 70,   // optional, or parse real confidence if available
-    risk_score: Math.floor(Math.random() * 50),
-    growth_score: Math.floor(Math.random() * 100),
-    stability_score: Math.floor(Math.random() * 100),
-    insight: "AI picked the best option",
-    outcome_a: "Option A evaluated",
-    outcome_b: "Option B evaluated",
-    regret_level: "LOW",
-    regret_text: "Low regret expected"
-  };
+  if (!rawText) {
+    return {
+      decision: "No answer",
+      confidence: 78,
+      risk_score: 15,
+      growth_score: 51,
+      stability_score: 20,
+      insight: "AI picked the best option",
+      outcome_a: "Option A evaluated",
+      outcome_b: "Option B evaluated",
+      regret_level: "LOW",
+      regret_text: "Low regret expected"
+    };
+  }
+
+  // Parse the JSON string returned by Gemini
+  let result;
+  try {
+    result = JSON.parse(rawText.replace(/```json|```/g, '').trim());
+  } catch (e) {
+    console.error("Failed to parse Gemini JSON:", rawText);
+    result = { decision: rawText }; // fallback
+  }
+
+  clearInterval(statusTimer);
+  return result;
 }
 
 // ═══════════════════════════════════════════════════════
