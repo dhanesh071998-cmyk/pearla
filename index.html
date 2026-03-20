@@ -1249,16 +1249,18 @@ async function runAnalysis() {
   cycleStatus();
 
   try {
-    // 🔹 Call AI to get a real decision
-    const r = await callGemini();
+    // 🔥 Call Gemini Worker
+    const r = await callGemini(); 
     S.result = r;
 
     await useQuota(); 
     await updateQuotaDisplay();
     await saveDecision(r);
 
+    // 🔥 Render AI result
     renderResult(r); 
     showScreen('s-result');
+
   } catch (err) {
     console.error(err); 
     showScreen('s-fast');
@@ -1266,8 +1268,7 @@ async function runAnalysis() {
       <div class="error-card">
         ⚠️ AI error: ${err.message}<br>
         <small>Check your Gemini API key configuration</small>
-      </div>
-    `;
+      </div>`;
   }
 }
 function cycleStatus() {
@@ -1293,38 +1294,26 @@ function animBar(id, pct, valId) {
 // GEMINI API (replaces Claude)
 // ═══════════════════════════════════════════════════════
 async function callGemini() {
-  const isVisual = S.decisionType === 'visual' && S.image1B64;
+  const userPrompt = `You are Pearla AI. Decide: "${S.question}". Keep response short. Return ONLY JSON.`;
 
-  // Build the question prompt for the AI
-  const userPrompt = isVisual
-    ? `For VISUAL decision: ${S.question || 'Which looks better?'} Evaluate images and pick a winner. Factors: ${S.selectedChips.join(', ')}`
-    : `You are Pearla AI decision engine. Make ONE confident choice for: "${S.question}". Factors: ${S.selectedChips.join(', ')}. Return ONLY valid JSON with keys: decision, confidence, insight, risk_score, growth_score, stability_score, outcome_a, outcome_b, regret_level, regret_text`;
-
-  // Send request to your Cloudflare worker
   const resp = await fetch('https://pearlagemini.dhanesh-071998.workers.dev/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: userPrompt })
   });
 
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.error || `Worker API error ${resp.status}`);
-  }
-
   const data = await resp.json();
-  console.log("Gemini RAW RESPONSE:", data);
+  console.log("RAW GEMINI DATA:", data);
 
-  // Extract the text part from Gemini response
   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
   if (!rawText) {
     return {
       decision: "No answer",
       confidence: 78,
-      risk_score: 15,
-      growth_score: 51,
-      stability_score: 20,
+      risk_score: 20,
+      growth_score: 50,
+      stability_score: 60,
       insight: "AI picked the best option",
       outcome_a: "Option A evaluated",
       outcome_b: "Option B evaluated",
@@ -1333,17 +1322,12 @@ async function callGemini() {
     };
   }
 
-  // Parse the JSON string returned by Gemini
-  let result;
   try {
-    result = JSON.parse(rawText.replace(/```json|```/g, '').trim());
-  } catch (e) {
+    return JSON.parse(rawText.replace(/```json|```/g, '').trim());
+  } catch (err) {
     console.error("Failed to parse Gemini JSON:", rawText);
-    result = { decision: rawText }; // fallback
+    return { decision: rawText };
   }
-
-  clearInterval(statusTimer);
-  return result;
 }
 
 // ═══════════════════════════════════════════════════════
