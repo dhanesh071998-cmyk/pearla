@@ -1239,28 +1239,37 @@ const statusMsgs = ['Reading between the lines…','Weighing your risks…','Sca
 let statusTimer, statusIdx = 0;
 
 async function runAnalysis() {
-  if (!S.selectedChips.length) { toast('Pick at least 1 factor'); return; }
-  showScreen('s-analysis'); animateBars(); cycleStatus();
-  try {
-    const r = {
-  decision: "Go ahead with your decision ✅",
-  confidence: 78,
-  risk_score: 42,
-  growth_score: 68,
-  stability_score: 55,
-  insight: "This choice gives better long-term growth.",
-  outcome_a: "Safe option is stable but slow.",
-  outcome_b: "Bold option is risky but high reward.",
-  regret_level: "LOW",
-  regret_text: "You are unlikely to regret this choice."
-}; S.result = r;
-    await useQuota(); await updateQuotaDisplay();
-    await saveDecision(r);
-    renderResult(r); showScreen('s-result');
-  } catch (err) {
-    console.error(err); showScreen('s-fast');
-    document.getElementById('chips-grid').innerHTML = `<div class="error-card">⚠️ AI error: ${err.message}<br><small>Check your Gemini API key configuration</small></div>`;
+  if (!S.selectedChips.length) { 
+    toast('Pick at least 1 factor'); 
+    return; 
   }
+
+  showScreen('s-analysis'); 
+  animateBars(); 
+  cycleStatus();
+
+  try {
+    // 🔹 Call the AI for a real decision
+    const r = await callGemini();  // <-- this was missing
+    S.result = r;
+
+    await useQuota(); 
+    await updateQuotaDisplay();
+    await saveDecision(r);
+
+    renderResult(r); 
+    showScreen('s-result');
+  } catch (err) {
+    console.error(err); 
+    showScreen('s-fast');
+    document.getElementById('chips-grid').innerHTML = `
+      <div class="error-card">
+        ⚠️ AI error: ${err.message}<br>
+        <small>Check your Gemini API key configuration</small>
+      </div>
+    `;
+  }
+}
 }
 
 function cycleStatus() {
